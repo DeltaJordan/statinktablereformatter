@@ -18,7 +18,7 @@
             var elapsedRow = $('tr:contains(Elapsed Time)');
             var elapsedData = $(elapsedRow).find('td');
             var matchTime = elapsedData.text().split(' ')[0];
-            item.innerHTML = matchTime;
+            item.innerHTML = '00:' + matchTime;
         }
     });
 
@@ -26,6 +26,12 @@
     assistHeader.class = "text-nowrap text-center col-assist";
     assistHeader.innerText = "a";
     $('.col-kill').after(assistHeader);
+
+    var goodGuysScore = $('tr:contains(Final Count)').find('.progress-bar-info').text();
+    var badGuysScore = $('tr:contains(Final Count)').find('.progress-bar-danger').text();
+
+    $('#players').find('th:contains(Good Guys)').append(' ' + goodGuysScore);
+    $('#players').find('th:contains(Bad Guys)').append(' ' + badGuysScore);
 
     $('#players > tbody > tr').each(function(index, item) {
         if (index == 1) {
@@ -76,9 +82,45 @@
     $(badGuysAssists).children()[2].after(bgAssistTotalColumn);
 
     var excelCopy = function() {
-        let html = document.getElementById('players');
-        const blob = new Blob([html], { 'type': 'text/html' });
-        navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+        var excelData = [];
+        excelData.push([]);
+        $('#players > thead > tr > th').each(function(index, item) {
+            excelData[0].push(item.innerText);
+        });
+        $('#players > tbody > tr').each(function(trIndex, item) {
+            excelData.push([]);
+            $(item).children().each(function(_, item) {
+                var tdData = item.innerText;
+                if (isNaN(tdData)) {
+                    if (tdData.match(/\#[0-9][0-9][0-9][0-9]/)) {
+                        excelData[trIndex + 1].push(tdData.split('\n')[1]);
+                    }
+                    else {
+                        excelData[trIndex + 1].push(tdData.replace('\n', ''));
+                    }
+                }
+                else {
+                    var num = parseInt(tdData);
+                    if (isNaN(num)) {
+                        excelData[trIndex + 1].push(' ');
+                    }
+                    else {
+                        excelData[trIndex + 1].push(num);
+                    }
+                }
+            });
+        });
+
+        excelData[1].splice(1, 0, '\t');
+        excelData[6].splice(1, 0, '\t');
+
+        var result = '';
+        excelData.forEach(row => {
+            result += row.join('\t');
+            result += '\n';
+        });
+
+        navigator.clipboard.writeText(result);
     };
 
     var btnCopyStats = document.createElement('button');
@@ -87,9 +129,7 @@
     btnCopyStats.onclick = excelCopy;
     $('#players').after(btnCopyStats);
 
-    $('div[class*=abilities]').each(function(index, item) {
-        $(item).remove();
-    });
+    $('div[class*=abilities]').remove();
 
     $('#players').find('.basic-icon').remove();
 })();
