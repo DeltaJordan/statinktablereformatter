@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Copy stat.ink stats in excel format.
 // @namespace    http://tampermonkey.net/
-// @version      0.1
+// @version      0.2
 // @description  Copies stat.ink stats in a format that plays better with excel.
 // @author       DeltaJordan
 // @match        https://stat.ink/*
